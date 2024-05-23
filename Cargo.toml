@@ -1,0 +1,20 @@
+[package]
+name = "modality-dlt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+auxon-sdk = { version = "1.4.0", features=["modality"] }
+#dlt-core = "0.14.5"
+dlt-core = { path = "../forks/dlt-core" }
+serde = "1.0.202"
+
+tokio = "1.37.0"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+
+
+[[bin]]
+name = "collector"
+path = "src/bin/collector.rs"
