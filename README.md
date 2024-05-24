@@ -3,24 +3,41 @@
 Modality reflector plugins for AUTOSAR DLT (Diagnostic Log and Trace).
 
 ## Configuration
+Lowercase names are the config keys which may be used in a reflector
+config toml file. Uppercase names are environment variables which may
+be used for the same configuration.
+
 ### Common
 These options are used by both the collector and the importer.
-| Config Key                     | Environment Variable                        | Meaning                                                                                                                                                                                                   |
-|:-------------------------------|:--------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `timeline_from_ecu_id`         | `MODALITY_DLT_TIMELINE_FROM_ECU_ID`         | Should the ecu id be used as part of timeline identity and naming? Defaults to true.                                                                                                                      |
-| `timeline_from_session_id`     | `MODALITY_DLT_TIMELINE_FROM_SESSION_ID`     | Should the session be used as part of timeline identity (not naming)? Defaults to true.                                                                                                                   |
-| `timeline_from_application_id` | `MODALITY_DLT_TIMELINE_FROM_APPLICATION_ID` | Should the application id field be used as part of timeline identity and naming? Defaults to false.                                                                                                       |
-| `timeline_from_context_id`     | `MODALITY_DLT_TIMELINE_FROM_CONTEXT_ID`     | Should the context id field be used as part of timeline identity and naming? Defaults to false.                                                                                                           |
-|                                | `MODALITY_RUN_ID`                           | The run id to value to use in timeline metadata (`timeline.run_id`). This is used as the basis for the segmentation method used in the default Modality workspace. Defaults to a randomly generated uuid. |
-|                                | `MODALITY_AUTH_TOKEN`                       | The content of the auth token to use when connecting to Modality. If this is not set, the auth token used by the Modality CLI is read from `~/.config/modality_cli/.user_auth_token`                      |
-|                                | `MODALITY_HOST`                             | The hostname where the modality server is running.                                                                                                                                                        |
+
+* `timeline_from_ecu_id` / `MODALITY_DLT_TIMELINE_FROM_ECU_ID`  
+Should the ecu id be used as part of timeline identity and naming? Defaults to true.
+
+* `timeline_from_session_id` / `MODALITY_DLT_TIMELINE_FROM_SESSION_ID`  
+Should the session be used as part of timeline identity (not naming)? Defaults to true.
+
+* `timeline_from_application_id` / `MODALITY_DLT_TIMELINE_FROM_APPLICATION_ID`  
+Should the application id field be used as part of timeline identity and naming? Defaults to false.
+
+* `timeline_from_context_id` / `MODALITY_DLT_TIMELINE_FROM_CONTEXT_ID`  
+Should the context id field be used as part of timeline identity and naming? Defaults to false.
+
+* `MODALITY_RUN_ID`  
+The run id to value to use in timeline metadata (* `timeline.run_id`). This is used as the basis for the segmentation method used in the default Modality workspace.   Defaults to a randomly generated uuid.
+
+* `MODALITY_AUTH_TOKEN`  
+The content of the auth token to use when connecting to Modality. If this is not set, the auth token used by the Modality CLI is read from `~/.config/modality_cli/.user_auth_token`
+
+* `MODALITY_HOST`  
+The hostname where the modality server is running.
 
 ### Collector
 These options are used by both the collector and the importer.
-| Config Key | Environment Variable | Meaning                                                                       |
-|:-----------|:---------------------|:------------------------------------------------------------------------------|
-| `host`     | `MODALITY_DLT_HOST`  | The DLT host to connect to (with TCP). If not given, defaults to "localhost". |
-| `port`     | `MODALITY_DLT_PORT`  | The TCP port to connect to on the DLT host. If not given, defaults to 3490.   |
+* `host`/`MODALITY_DLT_HOST`  
+The DLT host to connect to (with TCP). If not given, defaults to "localhost".
+
+* `port`/ `MODALITY_DLT_PORT`  
+The TCP port to connect to on the DLT host. If not given, defaults to 3490.
 
 ### Importer
 The importer currently has no specific options. The file to import is given on the command line.
@@ -29,8 +46,8 @@ The importer currently has no specific options. The file to import is given on t
 The following describes the default mapping between DLT concepts and Modality's concepts.
 
 * Timeline creation is customizable, based on the `timeline_from_*`
-  configuration options. By default, the ECU ID and Session Id are
-  used to uniquely identify the timeline.
+  configuration options. By default, ECU ID and Session Id are used to
+  uniquely identify the timeline.
   * If multiple fields are used for timeline naming, they are
     separated with a `.` character.
   * All fields that are configured for timeline identification are
