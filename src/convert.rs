@@ -262,7 +262,7 @@ fn value_to_attr_val(value: dlt::Value) -> Option<AttrVal> {
             if x < i128::MAX as u128 {
                 Some((x as i128).into())
             } else {
-                //tracing::warn!("Dropping integer that is too large for Modality");
+                tracing::warn!("Dropping integer that is too large for Modality");
                 None
             }
         }

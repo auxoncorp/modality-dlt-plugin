@@ -11,7 +11,7 @@ use tracing::info;
 struct CollectorConfig {
     /// The DLT host to connect to (with TCP).
     ///
-    ///If not given, defaults to "localhost".
+    /// If not given, defaults to "localhost".
     host: Option<String>,
 
     /// The TCP port to connect to on the DLT host.
