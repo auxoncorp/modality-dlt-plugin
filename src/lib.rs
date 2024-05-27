@@ -125,7 +125,7 @@ pub fn consume_dlt_storage_header_sync(
     // a storage-header's worth of data from the stream, then use the library
     // to verify it has the right shape.
     let mut storage_header_buf = [0u8; 16];
-    stream.read(&mut storage_header_buf.as_mut_slice())?;
+    stream.read_exact(storage_header_buf.as_mut_slice())?;
 
     let (remaining_data, read_size) = dlt_core::parse::skip_storage_header(&storage_header_buf)?;
     if !remaining_data.is_empty() || read_size != 16 {
