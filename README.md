@@ -93,3 +93,14 @@ The following describes the default mapping between DLT concepts and Modality's 
     payloads using an external data source.
 
 * When importing from a file, storage header content is currently ignored.
+
+# Development
+## Fuzz testing
+```
+rustup install nightly
+cargo install cargo-fuzz
+
+# Each of these runs until ctrl-c
+cargo +nightly fuzz run network --jobs=32 -- --max-len=64
+cargo +nightly fuzz run storage_header --jobs=32 -- --max-len=18
+```

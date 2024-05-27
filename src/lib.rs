@@ -2,9 +2,9 @@ pub mod convert;
 pub mod send;
 
 use anyhow::anyhow;
+use auxon_sdk::plugin_utils::serde::from_str;
 use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncRead, AsyncReadExt as _};
-use auxon_sdk::plugin_utils::serde::from_str;
 
 #[derive(Serialize, Deserialize)]
 pub struct CommonConfig {
@@ -63,6 +63,38 @@ where
     Ok(dlt_msg)
 }
 
+/// A non-async version of read_dlt_message. Does the same thing, just
+/// against a Read instead of an AsyncRead
+pub fn read_dlt_message_sync(
+    mut stream: impl std::io::Read,
+) -> Result<dlt_core::parse::ParsedMessage, anyhow::Error> {
+    let mut header_type_byte_buf = [0u8; 1];
+    stream.read_exact(&mut header_type_byte_buf)?;
+    let header_type_byte = header_type_byte_buf[0];
+    let headers_len = dlt_core::dlt::calculate_all_headers_length(header_type_byte) as usize;
+
+    // Read the whole header
+    let mut header_buf = vec![0u8; headers_len];
+    header_buf[0] = header_type_byte;
+    stream.read_exact(&mut header_buf[1..])?;
+    let (_, header) = dlt_core::parse::dlt_standard_header(&header_buf)?;
+
+    // Read the payload. Put it in a single buffer together with the header
+    let total_message_size = headers_len + header.payload_length as usize;
+    let mut msg_buf = vec![0u8; total_message_size];
+    msg_buf[0..headers_len].copy_from_slice(&header_buf);
+    stream.read_exact(&mut msg_buf[headers_len..])?;
+
+    let (remaining_data, dlt_msg) = dlt_core::parse::dlt_message(&msg_buf, None, false)?;
+    if !remaining_data.is_empty() {
+        return Err(anyhow!(
+            "Remaining data after loading DLT message: {remaining_data:?}"
+        ));
+    }
+
+    Ok(dlt_msg)
+}
+
 /// Try to read DLT storage header from `stream`. Return an error if we couldn't.
 pub async fn consume_dlt_storage_header<S>(stream: &mut S) -> Result<(), anyhow::Error>
 where
@@ -75,6 +107,25 @@ where
     stream
         .read_buf(&mut storage_header_buf.as_mut_slice())
         .await?;
+
+    let (remaining_data, read_size) = dlt_core::parse::skip_storage_header(&storage_header_buf)?;
+    if !remaining_data.is_empty() || read_size != 16 {
+        return Err(anyhow!("Invalid DLT storage header"));
+    }
+
+    Ok(())
+}
+
+/// A non-async version of consume_dlt_storage_header. Does the same
+/// thing, just against a Read instead of an AsyncRead
+pub fn consume_dlt_storage_header_sync(
+    mut stream: impl std::io::Read,
+) -> Result<(), anyhow::Error> {
+    // dlt_core only works on a byte buffer. So, we're going to read
+    // a storage-header's worth of data from the stream, then use the library
+    // to verify it has the right shape.
+    let mut storage_header_buf = [0u8; 16];
+    stream.read(&mut storage_header_buf.as_mut_slice())?;
 
     let (remaining_data, read_size) = dlt_core::parse::skip_storage_header(&storage_header_buf)?;
     if !remaining_data.is_empty() || read_size != 16 {
