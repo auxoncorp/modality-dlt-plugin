@@ -42,13 +42,7 @@ services:
     build:
       context: ..
       dockerfile_inline: |
-        FROM rust:slim-bullseye
-        RUN apt-get update && apt-get install pkg-config libssl-dev -y
-        COPY Cargo.toml Cargo.lock /plugin-src/
-        COPY src/ /plugin-src/src
-        WORKDIR /plugin-src
-        RUN ls && cargo build --release
-        
+        FROM modality-dlt-build:latest
         FROM ghcr.io/auxoncorp/modality-reflector:latest
         COPY --from=0 /plugin-src/target/release/modality-dlt-importer /modality-reflector-plugins/importers/
         COPY --from=0 /plugin-src/target/release/modality-dlt-collector /modality-reflector-plugins/collectors/
@@ -70,6 +64,8 @@ services:
       start_interval: 1s
     
   test-collector:
+    profiles:
+      - test-collector
     build:
       dockerfile_inline: |
         FROM ghcr.io/auxoncorp/modality-reflector:latest
@@ -83,4 +79,26 @@ services:
       - modality_client_config:/root/.config/modality_cli
       - dlt_tmp:/tmp
     environment: { MODALITY_URL: http://modalityd:14181/v1 }
+    restart: no
+
+  test-import:
+    profiles:
+      - test-import
+    build:
+      dockerfile_inline: |
+        FROM modality-dlt-build:latest
+        FROM ghcr.io/auxoncorp/modality-reflector:latest
+        COPY --from=0 /plugin-src/target/release/modality-dlt-importer /modality-reflector-plugins/importers/
+        COPY --from=0 /plugin-src/target/release/modality-dlt-collector /modality-reflector-plugins/collectors/
+        COPY *.sh /
+        COPY *.speqtr /
+        COPY test-data/* /
+        ENTRYPOINT []
+        CMD /test-import.sh
+    volumes:
+      - modality_client_config:/root/.config/modality_cli
+      - dlt_tmp:/tmp
+    environment:
+      MODALITY_URL: http://modalityd:14181/v1
+      INGEST_PROTOCOL_PARENT_URL: modality-ingest://modalityd
     restart: no

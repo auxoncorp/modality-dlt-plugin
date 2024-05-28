@@ -1,9 +1,3 @@
-behavior "connect messages"
-  nominal case "connect messages are observed"
-    log@ECU1(_.payload = "New client connection * established*")
-  end
-end
-
 behavior "injected log messages"
   nominal case "injected log messages are observed"
     log@ECU1(_.payload.0 = 1 and _.payload.1 = "fooo") ->
